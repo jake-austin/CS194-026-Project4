@@ -1,0 +1,38 @@
+<html><head><style>body {
+   color: black;
+}
+</style></head><body><h1 id="project-4-a-">Project 4(a)</h1>
+<p>Here, we are working with homographies: transforming images in a way that it appears to shift our perspective of an image. This can be done with a linear transformation. It obviously doesn&#39;t give new information as if the photo was taken from a different location, just making the photo look as if it was from a different angle.</p>
+<p><strong>Recover Homographies</strong></p>
+<p>In order to define the homography transformation between one set of points and another, I used the method described in this article <a href="https://towardsdatascience.com/estimating-a-homography-matrix-522c70ec4b2c">https://towardsdatascience.com/estimating-a-homography-matrix-522c70ec4b2c</a>. If you take the the original formula for a homography</p>
+<p><img src="./homography_eqn.png" alt="drawing" width="600"/></p>
+<p>and actually multiply everything out, substituting the last equation z_a = h_31 + h_32 + h_33 for the z_a in the other two equations, you will end up getting 2 equations that are linearly independent. If you do this for each of your 4 points defined for the homography, you will have 8 equations for your 8 variables (setting h_33 to 1). The following is the system of equations you get in matrix form.</p>
+<p><img src="./homography_full_eqn.png" alt="drawing" width="600"/></p>
+<p>You can simply use least squares and roll up the values of h into a matrix (again, h_33 = 1). This transform isn&#39;t all you need though. Notice in the first equation that everything is scaled by z_a. In order to recover the x_i_hat and y_i_hat values themselves (which are the actual values that you care about), you need to divide every output vector you use this transform on by the z_a value given in the last entry of the output vector.</p>
+<p>Here are some samples.
+These first two images are original images.</p>
+<p><img src="./im2.jpg" alt="drawing" width="600"/>
+<img src="./im1.jpg" alt="drawing" width="600"/></p>
+<p>Here is the second image warped to the perspective of the first.</p>
+<p><img src="./homography_warp.png" alt="drawing" width="600"/></p>
+<p>You can see that it looks pretty convincing. The way in which we did this also should lead to a half decent alignment of the images as well.</p>
+<p><strong>Image Rectification</strong></p>
+<p>Here is the results of going from a slanted view to a front view of the Mona Lisa.</p>
+<p>Here is the input image. The second image has the keypoints.</p>
+<p><img src="./mona_lisa.jpeg" alt="drawing" width="600"/>
+<img src="./mona_lisa_keypoints.png" alt="drawing" width="600"/></p>
+<p>Here is the output of transforming from the perspective of the side view to the front view of the mona lisa.</p>
+<p><img src="./Mona_lisa_rectified.png" alt="drawing" width="600"/></p>
+<p>You can see that this looks pretty good. The view is nice, but unfortunately, due to the nature of the homography, the reflections in the glass don&#39;t get removed as if we were looking at it from head on. The same goes for the inner side of the frame. The right inside of the frame was visible from the side view, and we can still see it in the new view, but only the right side since the left side wasn&#39;t visible from our other view, hence the disorienting brown bar on the right side from the inner right side of the frame in our output view.</p>
+<p><strong>Mosaic Creation</strong></p>
+<p>Here, I just used the fact that my homography transform will also shift the image to be aligned with the keypoints in the starting frame to keep a running transform as I went down the list of images, starting with the identity and composing the next transform with this running transform and then transforming the next image with the current running transform. The output can be seen here. I also just averaged instead of feathering in the blended areas.</p>
+<p><img src="./mosaic.png" alt="drawing" width="600"/></p>
+<p>There are some issues with this. Clearly the transform isn&#39;t doing a perfect job. The homography itself looks fine, there are just some image alignment issues that cause the middle areas to be a bit blurred. Below is the list of keypoints we defined.</p>
+<p><img src="./correspondences.png" alt="drawing" width="600"/></p>
+<p>You can see that my keypoints aren&#39;t exactly aligned. I blame the matplotlib ginput which selects points that are offset down and to the right a few pixels from the tip of my mouse cursor... more towards the middle of the tip of my cursor. I also could have defined more points between the two images. That being said, half of the issue is that when taking the photos, I didn&#39;t leave enough room in between photos that would have allowed me to find more good keypoints and get a better transform.</p>
+<p>Another issue that causes some weirdness is that I took this image at an off angle to the horizon. Instead of looking at images that are almost on the side of a cylinder, this mosaic is more like the top hemisphere in a dome. This is why the tower looks like it is at a weird angle: because it is so far from the first image (which we defined to be the center of the mosaic).</p>
+<p>All that being said, without feathering or anything it does a good job. The homography itself is clearly still working and with better feature alignment and some real feathering and feature blur, this will only get better.</p>
+<p><strong>Bells and Whistles</strong></p>
+<p>Here is a fun image I did. I replaced the Mona Lisa with Nyan cat. Same keypoints as the mona lisa above. Enjoy</p>
+<p><img src="./nyan_lisa.png" alt="drawing" width="600"/></p>
+</body></html>
